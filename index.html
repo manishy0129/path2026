@@ -1,0 +1,510 @@
+<!doctype html>
+<html lang="en">
+<head>
+  <meta charset="UTF-8" />
+  <meta name="viewport" content="width=device-width, initial-scale=1.0" />
+  <title>PATH — Travel Smart. Travel Safe. Anywhere.</title>
+  <meta name="title" content="PATH — Travel Smart. Travel Safe. Anywhere.">
+  <meta name="description" content="PATH provides country-specific travel rules, emergency contacts, safety guidance, and offline tools for confident global journeys.">
+  <meta property="og:title" content="PATH — Travel Smart. Travel Safe. Anywhere.">
+  <meta property="og:description" content="PATH provides country-specific travel rules, emergency contacts, safety guidance, and offline tools for confident global journeys.">
+  <meta property="og:type" content="website">
+  <meta name="twitter:title" content="PATH — Travel Smart. Travel Safe. Anywhere.">
+  <meta name="twitter:description" content="PATH provides country-specific travel rules, emergency contacts, safety guidance, and offline tools for confident global journeys.">
+  <link rel="icon" href="data:image/svg+xml,%3Csvg xmlns='http://www.w3.org/2000/svg' viewBox='0 0 100 100'%3E%3Ctext y='0.9em' font-size='90'%3E%F0%9F%A7%AD%3C/text%3E%3C/svg%3E" title="PATH">
+  <link rel="stylesheet" href="styles.css" />
+</head>
+<body>
+  <!-- Splash screen -->
+  <section id="splash" class="splash-screen" aria-label="Loading">
+    <div class="splash-card">
+      <div class="splash-badge">🧭</div>
+      <div class="splash-pill">🧭 PATH</div>
+      <h1>Travel Smart. Travel Safe. Anywhere.</h1>
+      <p>PATH helps travelers stay informed with country-specific laws, emergency contacts, alerts, and offline travel tools.</p>
+      <div class="splash-loader" aria-hidden="true"></div>
+    </div>
+  </section>
+
+  <!-- Login overlay -->
+  <section id="loginOverlay" class="login-overlay" aria-label="Secure login">
+    <div class="login-card" role="dialog" aria-modal="true">
+      <div class="login-card__header">
+        <h2 data-i18n="login.title">Secure sign-in 🔐</h2>
+        <p data-i18n="login.subtitle">Phone number login with OTP (demo implementation). 📱</p>
+      </div>
+
+      <div id="loginStep1">
+        <label for="phone" data-i18n="login.phoneLabel">Phone number (E.164 recommended) ☎️</label>
+        <input id="phone" type="tel" inputmode="tel" placeholder="+14155552671" autocomplete="tel" data-i18n-placeholder="login.phonePlaceholder" />
+        <button id="sendOtpBtn" class="login-button primary-button" type="button" data-i18n="login.sendOtp">Send OTP ✅</button>
+        <div class="divider"><span data-i18n="login.or">or</span></div>
+        <button id="useSampleBtn" class="facebook-button" type="button" title="Demo helper" data-i18n-title="login.demoHelper">
+          <span data-i18n="login.useDemo">Use demo phone 🎲</span>
+        </button>
+        <button id="skipLogin" class="tertiary-button" type="button" style="margin-top:14px;" data-i18n="login.skip">Skip for now ✨</button>
+      </div>
+
+      <div id="loginStep2" class="hidden">
+        <label for="otp" data-i18n="login.enterOtp">Enter OTP 🔢</label>
+        <input id="otp" type="text" inputmode="numeric" placeholder="123456" autocomplete="one-time-code" data-i18n-placeholder="login.otpPlaceholder" />
+        <div id="otpHint" class="panel-summary" style="margin-bottom:14px;" data-i18n="login.otpHint">OTP will appear here in demo mode.</div>
+        <button id="verifyOtpBtn" class="login-button primary-button" type="button" data-i18n="login.verify">Verify & continue 🔓</button>
+        <div style="margin-top:12px;">
+          <button id="backToPhoneBtn" class="tertiary-button" type="button" data-i18n="login.back">Back 🔙</button>
+        </div>
+      </div>
+
+      <div id="loginError" class="panel-summary" style="color:#b00020; margin-top:14px;" aria-live="polite"></div>
+    </div>
+  </section>
+
+  <!-- Main app shell -->
+  <main id="app" class="hidden" aria-label="PATH app">
+    <div class="app-shell">
+      <header class="app-header">
+        <div>
+          <span class="brand">🧭 PATH</span>
+          <p>Travel Smart. Travel Safe. Anywhere.</p>
+        </div>
+
+        <div class="header-actions">
+          <div id="languageSelector" class="language-selector">
+            <button id="languageToggleBtn" class="tertiary-button" type="button" data-i18n="language.toggle">🌐 Language</button>
+            <div id="languageDropdown" class="language-dropdown hidden" aria-label="Language selector">
+              <input id="languageSearch" class="language-search" type="search" placeholder="Search languages…" data-i18n-placeholder="language.searchPlaceholder" aria-label="Search languages" />
+              <div id="languageList" class="language-list"></div>
+            </div>
+          </div>
+          <div class="status-pill" id="authStatus" data-i18n="app.signedIn">Signed in ✅</div>
+          <button id="audioOpenBtn" class="secondary-button" type="button" aria-label="Open audio player">🔊 Listen</button>
+          <button id="logoutBtn" class="tertiary-button" type="button" data-i18n="app.logout">Log out 👋</button>
+        </div>
+      </header>
+
+      <!-- Emergency SOS row -->
+      <section class="emergency-box" aria-label="Emergency SOS">
+        <div style="display:flex; align-items:flex-start; justify-content:space-between; gap:16px; flex-wrap:wrap;">
+          <div>
+            <div class="emergency-box__icon">🚨</div>
+            <strong>Emergency SOS button (press & hold) 🆘</strong>
+            <div class="panel-summary">
+              If you’re in immediate danger, contact local emergency services. This app provides embassy contacts and quick steps.
+            </div>
+          </div>
+          <div style="min-width:240px;">
+            <button id="sosBtn" class="primary-button" type="button" style="width:100%; border-radius:24px; font-size:1.05rem;">
+              Hold to send SOS 🆘
+            </button>
+            <div id="sosStatus" class="panel-summary" aria-live="polite" style="margin-top:10px;"></div>
+          </div>
+        </div>
+      </section>
+
+      <div class="dashboard" style="margin-top:22px;">
+        <div class="hero-grid">
+          <section class="hero-card">
+            <h2 data-i18n="hero.title">Quick safety cockpit 🛫</h2>
+            <p id="welcomeText" data-i18n="hero.subtitle">PATH helps travelers access country-specific laws, embassy contacts, alerts, and offline tools in one place. 🌍</p>
+            <div class="panel-row" style="margin-top:16px;">
+              <div>
+                <div class="panel-header">
+                  <span>🌎</span>
+                  <h3 style="margin:0;" data-i18n="hero.destination">Destination</h3>
+                </div>
+                <select id="countrySelect" style="width:100%; padding:14px 16px; border-radius:18px; border:1px solid #d9e4f3; font-size:1rem;">
+                  <option value="">Choose a country…</option>
+                </select>
+                <div class="panel-summary" style="margin-top:10px;" id="countrySummary" data-i18n="country.selectPrompt">Select a country to load its offline law guide.</div>
+                <div class="panel-summary hidden" style="margin-top:10px;" id="countryLanguageSuggestions"></div>
+              </div>
+              <div class="alerts-card panel-card" style="margin:0;">
+                <div class="panel-header">
+                  <span>🔔</span>
+                  <h3 style="margin:0;" data-i18n="alerts.title">Live alerts</h3>
+                </div>
+                <div class="panel-summary">
+                  <div><strong data-i18n="alerts.lastChecked">Last checked:</strong> <span id="alertsChecked">—</span></div>
+                  <div id="alertsList" style="margin-top:10px; display:grid; gap:10px;"></div>
+                </div>
+              </div>
+            </div>
+          </section>
+
+          <section class="hero-card" style="display:flex; flex-direction:column; justify-content:space-between; gap:14px;">
+            <div>
+              <h2 data-i18n="currency.title">Currency converter 💱</h2>
+              <p data-i18n="currency.subtitle">Fast, offline-friendly conversion using cached latest rates. ⏱️</p>
+              <div class="converter-row">
+                <div>
+                  <div class="panel-header"><span>💵</span><h3 style="margin:0;" data-i18n="currency.from">From</h3></span></div>
+                  <select id="fromCurrency" style="width:100%; padding:14px 16px; border-radius:18px; border:1px solid #d9e4f3; font-size:1rem;"></select>
+                </div>
+                <div>
+                  <div class="panel-header"><span>🎯</span><h3 style="margin:0;" data-i18n="currency.to">To</h3></span></div>
+                  <select id="toCurrency" style="width:100%; padding:14px 16px; border-radius:18px; border:1px solid #d9e4f3; font-size:1rem;"></select>
+                </div>
+              </div>
+              <div class="converter-row" style="grid-template-columns:1fr;">
+                <input id="amount" type="number" min="0" step="0.01" placeholder="Amount" data-i18n-placeholder="currency.amountPlaceholder" />
+                <button id="convertBtn" class="secondary-button" type="button" style="border:1px solid rgba(47,166,247,0.35); border-radius:18px;" data-i18n="currency.convert">Convert 🔁</button>
+                <div class="converter-result" id="conversionResult" data-i18n="currency.convertedResult">Converted value will appear here.</div>
+                <div class="panel-summary" style="margin-top:8px;"><strong data-i18n="currency.ratesTimestamp">Rates timestamp:</strong> <span id="ratesTs">—</span></div>
+              </div>
+            </div>
+          </section>
+        </div>
+
+        <section class="tools-grid" aria-label="Tools">
+          <!-- Laws -->
+          <article id="lawsCard" class="tool-card">
+            <h4 data-i18n="laws.title">📜 Local laws & legality</h4>
+            <div class="panel-summary" id="lawsEmpty" data-i18n="laws.chooseDestination">Choose a destination country to load offline guidance.</div>
+            <div id="lawsContent" class="hidden" style="display:grid; gap:14px;">
+              <div>
+                <strong data-i18n="laws.country">Country:</strong> <span id="lawsCountry">—</span>
+              </div>
+              <div>
+                <strong data-i18n="laws.publicTransport">Public transport rules 🚆</strong>
+                <div class="panel-summary" id="lawsTransport"></div>
+              </div>
+              <div>
+                <strong data-i18n="laws.health">Health laws & vaccinations 🏥💉</strong>
+                <div class="panel-summary" id="lawsHealth"></div>
+              </div>
+              <div>
+                <strong data-i18n="laws.commonTerms">Common legal terms 🧾</strong>
+                <div class="panel-summary" id="lawsTerms"></div>
+              </div>
+              <div>
+                <strong data-i18n="laws.culture">Culture & etiquette 🎭</strong>
+                <div class="panel-summary" id="lawsCulture"></div>
+              </div>
+              <div>
+                <strong data-i18n="laws.plug">Plug sockets & voltage 🔌</strong>
+                <div class="panel-summary" id="lawsPlug"></div>
+              </div>
+              <div>
+                <strong data-i18n="laws.tipping">Tipping customs 💸</strong>
+                <div class="panel-summary" id="lawsTipping"></div>
+              </div>
+              <div>
+                <strong data-i18n="laws.tapWater">Tap water safety 🚰</strong>
+                <div class="panel-summary" id="lawsWater"></div>
+              </div>
+            </div>
+          </article>
+
+          <!-- Embassy contacts -->
+          <article class="tool-card">
+            <h4 data-i18n="embassy.title">🏛️ Embassy & emergency contacts</h4>
+            <div class="panel-summary" id="embassySummary" data-i18n="embassy.selectDestination">Select your destination to view embassy contacts and safety tips.</div>
+            <div id="embassyContent" class="hidden" style="display:grid; gap:12px;">
+              <div><strong data-i18n="embassy.embassy">Embassy:</strong> <span id="embassyName"></span></div>
+              <div><strong data-i18n="embassy.phone">Phone:</strong> <span id="embassyPhone"></span></div>
+              <div><strong data-i18n="embassy.address">Address:</strong> <span id="embassyAddress"></span></div>
+              <div><strong data-i18n="embassy.notes">Notes:</strong> <span id="embassyNotes"></span></div>
+              <div><strong data-i18n="embassy.police">Police:</strong> <span id="emergencyPolice">—</span></div>
+              <div><strong data-i18n="embassy.fire">Fire:</strong> <span id="emergencyFire">—</span></div>
+              <div><strong data-i18n="embassy.ambulance">Ambulance:</strong> <span id="emergencyAmbulance">—</span></div>
+              <div><strong data-i18n="embassy.touristPolice">Tourist police:</strong> <span id="emergencyTourist">—</span></div>
+            </div>
+          </article>
+
+          <!-- Trip save -->
+          <article class="tool-card">
+            <h4 data-i18n="trip.title">🧳 Save trip details</h4>
+            <div class="panel-summary" data-i18n="trip.subtitle">Store your itinerary locally for offline access.</div>
+            <div class="quiz-options" style="margin-top:12px;">
+              <input id="tripName" type="text" placeholder="Trip name (e.g., Summer 2026)" data-i18n-placeholder="trip.namePlaceholder" />
+              <input id="tripStart" type="date" data-i18n-placeholder="trip.startPlaceholder" />
+              <input id="tripEnd" type="date" data-i18n-placeholder="trip.endPlaceholder" />
+              <textarea id="tripNotes" placeholder="Notes (offline)" style="height:92px; resize:vertical;" data-i18n-placeholder="trip.notesPlaceholder"></textarea>
+              <button id="saveTripBtn" class="primary-button" type="button" data-i18n="trip.save">Save trip 💾</button>
+            </div>
+            <div class="quiz-result" id="tripSaveResult"></div>
+            <div id="tripsList" style="margin-top:14px; display:grid; gap:12px;"></div>
+          </article>
+
+          <!-- Quiz -->
+          <article class="quiz-card">
+            <h4 data-i18n="quiz.title">🧠 Pre-travel quiz</h4>
+            <div class="panel-summary" data-i18n="quiz.subtitle">Answer to score your travel readiness.</div>
+            <div id="quizWrap" class="quiz-options" style="margin-top:16px;">
+              <div id="quizQuestion" style="font-weight:800; font-size:1.05rem;"></div>
+              <div id="quizOptions" class="quiz-options"></div>
+            </div>
+            <div class="quiz-result" id="quizResult" style="margin-top:12px;"></div>
+            <div style="margin-top:12px; display:flex; gap:12px; flex-wrap:wrap;">
+              <button id="quizNextBtn" class="secondary-button" type="button" data-i18n="quiz.next">Next ➡️</button>
+              <button id="quizRestartBtn" class="tertiary-button" type="button" data-i18n="quiz.restart">Restart 🔄</button>
+            </div>
+          </article>
+
+          <!-- Forum -->
+          <article class="forum-card">
+            <div class="forum-header">
+              <h4 style="margin:0;" data-i18n="forum.title">💬 Traveler forum</h4>
+              <div class="status-pill" style="background:rgba(47,166,247,0.10);" data-i18n="forum.offlinePosts">Offline posts</div>
+            </div>
+            <div class="panel-summary" data-i18n="forum.subtitle">Share experiences, ask questions, and leave tips. 🧡</div>
+            <div class="forum-form" style="margin-top:16px;">
+              <input id="forumName" type="text" placeholder="Your name (emoji encouraged)" data-i18n-placeholder="forum.namePlaceholder" />
+              <textarea id="forumPost" placeholder="Write your experience…" style="height:88px; resize:vertical;" data-i18n-placeholder="forum.postPlaceholder"></textarea>
+              <button id="forumPostBtn" class="primary-button" type="button" data-i18n="forum.post">Post ✍️</button>
+            </div>
+            <div class="forum-posts" id="forumPosts"></div>
+          </article>
+
+          <!-- Flight tracking + weather + more -->
+          <article class="tool-card">
+            <h4 data-i18n="flight.title">🛫 Flight tracking (demo)</h4>
+            <div class="panel-summary" data-i18n="flight.subtitle">Enter a flight number (e.g., BA249, DL77). Offline mode shows a placeholder timeline.</div>
+            <input id="flightNumber" type="text" placeholder="Flight number" style="margin-top:12px;" data-i18n-placeholder="flight.placeholder" />
+            <button id="trackFlightBtn" class="secondary-button" type="button" style="margin-top:12px; border:1px solid rgba(47,166,247,0.35); border-radius:18px;" data-i18n="flight.track">Track 📡</button>
+            <div class="converter-result" id="flightResult"></div>
+          </article>
+
+          <article class="tool-card">
+            <h4 data-i18n="customs.title">📚 Customs dictionary</h4>
+            <div class="panel-summary" data-i18n="customs.subtitle">Common phrases & legal words in plain language.</div>
+            <input id="customsSearch" type="text" placeholder="Search term (e.g., warrant, visa)" style="margin-top:12px;" data-i18n-placeholder="customs.searchPlaceholder" />
+            <button id="customsSearchBtn" class="secondary-button" type="button" style="margin-top:12px; border:1px solid rgba(47,166,247,0.35); border-radius:18px;" data-i18n="customs.search">Search 🔎</button>
+            <div class="converter-result" id="customsResult"></div>
+          </article>
+
+          <article class="tool-card">
+            <h4 data-i18n="wifi.title">📶 Wi‑Fi hotspot tips</h4>
+            <div class="panel-summary" id="wifiTips" data-i18n="wifi.placeholder">Offline tips will appear after you choose a destination 🌍</div>
+            <button id="wifiLoadBtn" class="tertiary-button" type="button" style="margin-top:12px;" data-i18n="wifi.load">Load tips 🌐</button>
+          </article>
+
+          <article class="tool-card">
+            <h4 data-i18n="weather.title">🌦️ Weather forecast (demo)</h4>
+            <div class="panel-summary" data-i18n="weather.subtitle">Offline placeholder; online uses public API when available.</div>
+            <input id="weatherCity" type="text" placeholder="City (e.g., London)" style="margin-top:12px;" data-i18n-placeholder="weather.cityPlaceholder" />
+            <button id="weatherBtn" class="secondary-button" type="button" style="margin-top:12px; border:1px solid rgba(47,166,247,0.35); border-radius:18px;" data-i18n="weather.getForecast">Get forecast ☁️</button>
+            <div class="converter-result" id="weatherResult"></div>
+          </article>
+
+          <article class="tool-card">
+            <h4 data-i18n="lost.title">🧳 Lost & found tracking</h4>
+            <div class="panel-summary" data-i18n="lost.subtitle">Create a report and update its status locally.</div>
+            <input id="lostItem" type="text" placeholder="Item (e.g., Passport)" style="margin-top:12px;" data-i18n-placeholder="lost.itemPlaceholder" />
+            <input id="lostLocation" type="text" placeholder="Last seen location" data-i18n-placeholder="lost.locationPlaceholder" />
+            <input id="lostDate" type="date" data-i18n-placeholder="lost.datePlaceholder" />
+            <select id="lostStatus" style="margin-top:12px; width:100%; padding:14px 16px; border-radius:18px; border:1px solid #d9e4f3; font-size:1rem;">
+              <option value="reported" data-i18n="lost.statusReported">Reported 📩</option>
+              <option value="followup" data-i18n="lost.statusFollowup">Follow-up 🔁</option>
+              <option value="found" data-i18n="lost.statusFound">Found ✅</option>
+            </select>
+            <button id="lostSaveBtn" class="primary-button" type="button" style="margin-top:12px;" data-i18n="lost.save">Save report 💾</button>
+            <div id="lostList" style="margin-top:14px; display:grid; gap:12px;"></div>
+          </article>
+        </section>
+      </div>
+    </div>
+  </main>
+
+  <div id="appRuntimeError" style="position:fixed; left:14px; bottom:14px; z-index:5000; background:rgba(176,0,32,0.92); color:#fff; padding:10px 14px; border-radius:14px; display:none; max-width:560px; font-family:ui-sans-serif, system-ui;">
+    <strong>App error:</strong> <span id="appRuntimeErrorText"></span>
+  </div>
+
+  <div id="audioPlayer" class="audio-player hidden" role="region" aria-label="Audio player">
+    <div class="audio-player__header">
+      <div>
+        <span class="audio-player__title">🔊 Listen to Rules</span>
+        <div class="audio-player__status" id="audioSectionName" aria-live="polite">Ready to read</div>
+        <div class="audio-player__voice-info" id="audioVoiceCurrent">Voice: System default</div>
+      </div>
+      <button id="audioCloseBtn" class="tertiary-button" type="button" aria-label="Hide audio player">✕</button>
+    </div>
+    <div class="audio-player__controls">
+      <button id="audioPlayBtn" type="button" aria-label="Play audio">▶</button>
+      <button id="audioPauseBtn" type="button" aria-label="Pause audio">⏸</button>
+      <button id="audioStopBtn" type="button" aria-label="Stop audio">⏹</button>
+      <button id="audioPrevBtn" type="button" aria-label="Previous section">⏮</button>
+      <button id="audioNextBtn" type="button" aria-label="Next section">⏭</button>
+      <button id="audioRepeatBtn" type="button" aria-label="Repeat current section">🔁</button>
+    </div>
+    <div class="audio-player__controls audio-player__controls--compact">
+      <label for="audioSpeedSelect">Speed</label>
+      <select id="audioSpeedSelect" aria-label="Playback speed">
+        <option value="0.5">0.5x</option>
+        <option value="0.75">0.75x</option>
+        <option value="1" selected>1x</option>
+        <option value="1.25">1.25x</option>
+        <option value="1.5">1.5x</option>
+        <option value="2">2x</option>
+      </select>
+      <label for="audioVolumeRange">Volume</label>
+      <input id="audioVolumeRange" class="audio-player__slider" type="range" min="0" max="1" step="0.05" value="1" aria-label="Volume control" />
+      <button id="audioMuteBtn" type="button" aria-label="Mute audio">🔇</button>
+    </div>
+    <div class="audio-player__progress-row">
+      <span id="audioElapsed">0:00</span>
+      <div class="audio-player__progress-bar" role="progressbar" aria-valuemin="0" aria-valuemax="100" aria-valuenow="0" tabindex="0">
+        <div id="audioProgress" class="audio-player__progress-fill"></div>
+      </div>
+      <span id="audioRemaining">0:00</span>
+    </div>
+    <div class="audio-player__settings">
+      <div class="audio-player__language-group">
+        <label for="audioLanguageSelect">Audio Language</label>
+        <select id="audioLanguageSelect" aria-label="Audio language selection"></select>
+      </div>
+      <div class="audio-player__voice-group">
+        <label for="audioVoiceSelect">Voice</label>
+        <select id="audioVoiceSelect" aria-label="Voice selection"></select>
+      </div>
+      <div class="audio-player__gender-group">
+        <label for="audioGenderSelect">Voice Gender</label>
+        <select id="audioGenderSelect" aria-label="Audio gender selection">
+          <option value="system">System default</option>
+          <option value="female">Female</option>
+          <option value="male">Male</option>
+        </select>
+      </div>
+      <div>
+        <label for="audioModeSelect">Play mode</label>
+        <select id="audioModeSelect" aria-label="Playback mode">
+          <option value="section">Play Current Section</option>
+          <option value="page">Play Entire Page</option>
+          <option value="alerts">Play Important Alerts</option>
+          <option value="emergency">Play Emergency Information</option>
+          <option value="tips">Play Travel Tips</option>
+        </select>
+      </div>
+    </div>
+    <div class="audio-player__search-row">
+      <input id="audioSearchInput" type="search" placeholder="Search audio..." aria-label="Search audio sections" />
+      <button id="audioSearchBtn" class="secondary-button" type="button" aria-label="Search audio">Search</button>
+      <button id="audioDownloadBtn" class="secondary-button" type="button" aria-label="Download audio" disabled>Download</button>
+    </div>
+  </div>
+
+  <div id="jsLoaded" style="position:fixed; right:14px; bottom:14px; z-index:4500; background:rgba(16, 102, 183, 0.12); color:#1766b7; padding:10px 14px; border-radius:14px; font-weight:900; display:block; font-family:ui-sans-serif, system-ui;">JS loading… ⏳</div>
+
+
+
+
+
+  <script>
+    function showAppError(msg) {
+      const el = document.getElementById('appRuntimeError');
+      const t = document.getElementById('appRuntimeErrorText');
+      if (!el || !t) return;
+      el.style.display = 'block';
+      t.textContent = msg;
+    }
+
+    // Catch synchronous errors
+    window.addEventListener('error', (e) => {
+      const message = (e && e.message) ? e.message : 'Unknown error';
+      const filename = (e && e.filename) ? (' (' + e.filename + ')') : '';
+      showAppError('App error: ' + message + filename);
+    });
+
+    // Catch async promise errors
+    window.addEventListener('unhandledrejection', (e) => {
+      const reason = e && e.reason;
+      const msg = reason && reason.message ? reason.message : String(reason);
+      showAppError('Unhandled promise rejection: ' + msg);
+    });
+
+    // Catch errors when script fails to load
+    window.addEventListener('load', () => {
+      // no-op: placeholder for future checks
+    });
+  </script>
+
+
+  <section class="team-section" aria-labelledby="teamSectionTitle">
+    <div class="team-section__header">
+      <div class="section-eyebrow">👥 Meet the Team</div>
+    </div>
+    <div class="team-grid">
+      <article class="team-card" data-team-id="creator">
+        <div class="team-card__media">
+          <div class="team-avatar" id="creatorAvatar" tabindex="0" role="button" aria-label="Upload Creator Photo">
+            <div class="photo-wrapper">
+              <img id="creatorPhoto" class="creator-photo team-avatar__image hidden" src="assets/images/creator-placeholder.png" alt="Website Creator Photo" />
+            </div>
+          </div>
+          <input id="creatorPhotoInput" type="file" accept="image/png,image/jpeg,image/webp" hidden>
+          <div class="team-avatar__text">Upload Creator Photo</div>
+          <div class="team-avatar__buttons">
+            <button type="button" class="secondary-button team-upload-button" data-team-id="creator" aria-label="Upload Creator Photo">Upload Photo</button>
+            <button type="button" class="tertiary-button team-remove-button hidden" data-team-id="creator" aria-label="Remove Creator Photo">Remove</button>
+          </div>
+        </div>
+        <div class="team-card__content">
+          <div class="team-card__eyebrow">👨‍💻 Website Creator</div>
+          <h3 class="team-card__name">Manish Yadav</h3>
+          <div class="team-card__role">Founder<br>Developer<br>UI/UX Designer</div>
+          <p class="team-card__description">Manish Yadav designed and developed PATH to provide travelers with reliable country-specific travel rules, emergency contacts, local laws, road safety information, and multilingual guidance in one platform.</p>
+          <div class="team-card__links" aria-label="Creator contact links">
+            <a class="team-link social-link" data-platform="email" aria-label="Email Manish">✉️</a>
+            <a class="team-link social-link" data-platform="github" aria-label="Manish GitHub">🐙</a>
+            <a class="team-link social-link" data-platform="linkedin" aria-label="Manish LinkedIn">💼</a>
+          </div>
+          <div class="team-card__actions">
+            <a href="mailto:manishy0129@gmail.com" class="primary-button" aria-label="Contact Creator">📧 Contact Creator</a>
+            <a href="https://github.com/manishy0129" target="_blank" rel="noopener noreferrer" class="secondary-button" aria-label="Visit Portfolio">🌐 Visit Portfolio</a>
+          </div>
+        </div>
+      </article>
+
+      <article class="team-card" data-team-id="idea">
+        <div class="team-card__media">
+          <div class="team-avatar" id="ideaAvatar" tabindex="0" role="button" aria-label="Upload Idea Creator Photo">
+            <div class="photo-wrapper">
+              <img id="ideaPhoto" class="idea-photo team-avatar__image hidden" src="assets/images/idea-placeholder.png" alt="Idea & Concept Creator Photo" />
+            </div>
+          </div>
+          <input id="ideaPhotoInput" type="file" accept="image/png,image/jpeg,image/webp" hidden>
+          <div class="team-avatar__text">Upload Idea Creator Photo</div>
+          <div class="team-avatar__buttons">
+            <button type="button" class="secondary-button team-upload-button" data-team-id="idea" aria-label="Upload Idea Creator Photo">Upload Photo</button>
+            <button type="button" class="tertiary-button team-remove-button hidden" data-team-id="idea" aria-label="Remove Idea Creator Photo">Remove</button>
+          </div>
+        </div>
+        <div class="team-card__content">
+          <div class="team-card__eyebrow">💡 Idea & Concept</div>
+          <h3 class="team-card__name">Ritik Yadav</h3>
+          <div class="team-card__role">Project Visionary<br>Concept Creator<br>Product manager <br>founder</div>
+          <p class="team-card__description">Ritik Yadav originated the idea and vision behind PATH. His concept inspired the development of a global platform that helps travelers stay informed, prepared, and safe while exploring any country.</p>
+          <div class="team-card__links" aria-label="Idea creator contact links">
+            <a class="team-link social-link" data-platform="email" aria-label="Email Ritik">✉️</a>
+            <a class="team-link social-link" data-platform="instagram" aria-label="Ritik Instagram">🌐</a>
+          </div>
+          <div class="team-card__actions">
+            <a href="mailto:sonuyadav2030s@gmail.com" class="primary-button" aria-label="Contact Idea Creator">📧 Contact</a>
+            <a href="https://www.instagram.com/ritik_m00/" target="_blank" rel="noopener noreferrer" class="secondary-button" aria-label="Personal Website">🌐 Personal Website</a>
+          </div>
+        </div>
+      </article>
+    </div>
+
+    <div class="about-path">
+      <h3>About PATH</h3>
+      <p>PATH is an intelligent travel companion designed to help travelers access country-specific laws, road safety information, emergency contacts, local customs, weather updates, travel tips, and multilingual guidance before and during their journey.</p>
+    </div>
+  </section>
+
+  <footer class="site-footer" aria-label="Footer">
+    <div class="site-footer__inner">
+      <div class="site-footer__brand">© 2026 PATH</div>
+      <div class="site-footer__note">Designed & Developed by Manish Yadav</div>
+      <div class="site-footer__note">💡 Idea & Concept by Ritik Yadav</div>
+      <div class="site-footer__note">All Rights Reserved.</div>
+    </div>
+  </footer>
+
+  <div id="scriptStatus" style="position:fixed; left:14px; bottom:14px; z-index:4400; background:rgba(16,102,183,0.92); color:#fff; padding:10px 14px; border-radius:14px; font-family:ui-sans-serif, system-ui;">Waiting for app.js…</div>
+  <script src="app.js" onload="document.getElementById('scriptStatus').textContent='app.js loaded ✅'" onerror="document.getElementById('scriptStatus').textContent='app.js failed to load ⚠️'"></script>
+
+</body>
+</html>
+
+

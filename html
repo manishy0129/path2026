@@ -1,0 +1,368 @@
+<!DOCTYPE html>
+<html lang="en">
+<head>
+    <meta charset="UTF-8">
+    <meta name="viewport" content="width=device-width, initial-scale=1.0">
+    <title>Globetrotter Guardian</title>
+    <link rel="stylesheet" href="styles.css">
+</head>
+<body>
+    <div class="splash-screen" id="splashScreen">
+        <div class="splash-card">
+            <div class="splash-badge">🌍</div>
+            <h1>Globetrotter Guardian</h1>
+            <p>Travel safety, law alerts, embassy support, and culture guidance for every destination.</p>
+            <div class="splash-pill">Loading your smart travel assistant...</div>
+            <div class="splash-loader"></div>
+        </div>
+    </div>
+
+    <div class="app-shell hidden" id="appShell">
+        <div class="login-overlay visible" id="loginOverlay" aria-hidden="false">
+            <div class="login-card">
+                <div class="login-card__header">
+                    <h2>Secure Login 🔒</h2>
+                    <p>Use phone, Google, or Facebook to access your travel awareness dashboard.</p>
+                </div>
+                <form id="loginForm">
+                    <label for="phoneInput">Phone number</label>
+                    <input id="phoneInput" type="text" inputmode="numeric" pattern=" placeholder="98XXXXXXXX or 977XXXXXXXXXX" required>
+                    <button type="submit" class="login-button">Continue with phone</button>
+                </form>
+                <div class="divider"><span>or</span></div>
+                <button class="google-button" id="googleLogin">Continue with Google</button>
+                <button class="facebook-button" id="facebookLogin">Continue with Facebook</button>
+                <button class="tertiary-button skip-button" id="skipLogin">Skip for now</button>
+            </div>
+        </div>
+
+        <header class="app-header">
+            <div>
+                <span class="brand">🌐 TravelAware</span>
+                <p>Your international travel public awareness companion.</p>
+            </div>
+            <div class="header-actions">
+                <span class="status-pill">Live Alerts Enabled</span>
+            </div>
+        </header>
+
+        <main class="dashboard">
+            <section class="hero-grid">
+                <div class="hero-card">
+                    <h2>Welcome, Traveler! ✈️</h2>
+                    <p>Stay updated with local laws, safety alerts, emergency embassy contacts, health requirements, and more.</p>
+                    <div class="hero-buttons">
+                        <button class="primary-button" id="openLawDb">Law database</button>
+                        <button class="secondary-button" id="openQuiz">Travel quiz</button>
+                    </div>
+                </div>
+                <aside class="emergency-box">
+                    <div class="emergency-box__icon">✅</div>
+                    <div>
+                        <strong>Emergency Contacts</strong>
+                        <p>Police: 100 · Ambulance: 102 · Fire: 101</p>
+                        <p>Embassy Help: +977-1-442-8280</p>
+                    </div>
+                </aside>
+            </section>
+
+            <section class="panel-row">
+                <div class="panel-card">
+                    <div class="panel-header"><span>🌏</span><h3>Country Law Database</h3></div>
+                    <select id="countrySelect">
+                        <option value="Nepal">Nepal</option>
+                        <option value="India">India</option>
+                        <option value="USA">USA</option>
+                        <option value="Japan">Japan</option>
+                    </select>
+                    <div class="panel-summary" id="countrySummary"></div>
+                </div>
+                <div class="panel-card alerts-card">
+                    <div class="panel-header"><span>⚡</span><h3>Real-time Alerts</h3></div>
+                    <p id="liveAlert">Checking latest travel law updates...</p>
+                    <button class="tertiary-button" id="refreshAlert">Refresh Alerts</button>
+                </div>
+            </section>
+
+            <section class="tools-grid">
+                <div class="tool-card">
+                    <h4>Currency Converter 💱</h4>
+                    <div class="converter-row">
+                        <input id="currencyAmount" type="number" min="1" value="100">
+                        <select id="currencySelect">
+                            <option value="1">NPR → USD</option>
+                            <option value="2">USD → NPR</option>
+                            <option value="3">NPR → INR</option>
+                        </select>
+                    </div>
+                    <button class="secondary-button" id="convertButton">Convert</button>
+                    <p class="converter-result" id="currencyResult">Result appears here.</p>
+                </div>
+                <div class="tool-card">
+                    <h4>Translator 🧾</h4>
+                    <input id="legalTerm" type="text" placeholder="Enter term like visa or fine">
+                    <button class="secondary-button" id="translateButton">Translate</button>
+                    <p class="translator-result" id="translatorOutput">Type a legal term to translate.</p>
+                </div>
+                <div class="tool-card">
+                    <h4>Culture Guide 🎎</h4>
+                    <p id="cultureTip">Respect local rituals, dress modestly, and greet with a smile.</p>
+                </div>
+                <div class="tool-card">
+                    <h4>Transport Rules 🚆</h4>
+                    <p id="transportTip">Know public transport etiquette, ticket rules, and local ride customs.</p>
+                </div>
+                <div class="tool-card">
+                    <h4>Health & Vaccines 💉</h4>
+                    <p id="healthTip">Check vaccination requirements and local health restrictions before travel.</p>
+                </div>
+            </section>
+
+            <section class="quiz-card">
+                <h3>Pre-travel Quiz 📝</h3>
+                <p>Brush up on travel etiquette and safety before you depart.</p>
+                <div id="quizQuestion">Select a country to see a quiz question.</div>
+                <div class="quiz-options" id="quizOptions"></div>
+                <p class="quiz-result" id="quizResult"></p>
+            </section>
+
+            <section class="forum-card">
+                <div class="forum-header">
+                    <h3>Traveler Forum 🌍</h3>
+                    <p>Share tips, experiences, and safety notes from your journey.</p>
+                </div>
+                <div class="forum-posts" id="forumPosts"></div>
+                <form id="forumForm" class="forum-form">
+                    <input id="forumName" type="text" placeholder="Your name" required>
+                    <textarea id="forumMessage" rows="3" placeholder="Share a tip or experience" required></textarea>
+                    <button class="primary-button" type="submit">Post message</button>
+                </form>
+            </section>
+        </main>
+    </div>
+
+    <script>
+        const countryData = {
+            Nepal: {
+                title: 'Nepal: Local law highlights',
+                summary: 'Respect festivals, keep public spaces clean, follow transport rules, and carry ID at all times.',
+                alerts: ['Face masks required on public transport until further notice.', 'Visa extensions now need 7 days prior notice.'],
+                translator: { visa: 'भिसा', fine: 'जरिवाना', permit: 'अनुमति', police: 'प्रहरी', passport: 'पासपोर्ट' },
+                culture: 'Remove shoes at temples, ask before photographing people, and greet with Namaste.',
+                transport: 'Use official taxis, always wear helmets on bikes, and avoid crowded buses after dark.',
+                health: 'Travel insurance recommended. Hepatitis A and typhoid vaccines are advised.',
+                embassy: '+977-1-442-8280',
+                rates: { NPR_USD: 0.0068, USD_NPR: 147.0, NPR_INR: 0.62 }
+            },
+            India: {
+                title: 'India: Local law highlights',
+                summary: 'Carry ID, respect alcohol laws, and follow regional customs in public areas.',
+                alerts: ['New park permit requirements for foreign tourists.', 'Night travel restrictions in select heritage zones.'],
+                translator: { visa: 'वीजा', fine: 'जुर्माना', permit: 'अनुमति', police: 'पुलिस', passport: 'पासपोर्ट' },
+                culture: 'Dress modestly at religious sites, remove shoes indoors, and use folded hands to greet.',
+                transport: 'Use trusted ride apps, follow queue rules, and pay the correct fare.',
+                health: 'Polio vaccination advised. Drink bottled water if unsure about local supplies.',
+                embassy: '+91-11-2347-1000',
+                rates: { NPR_USD: 0.0068, USD_NPR: 147.0, NPR_INR: 0.62 }
+            },
+            USA: {
+                title: 'USA: Local law highlights',
+                summary: 'Carry ID, watch speed limits, and follow national park restrictions.',
+                alerts: ['New TSA rules for carry-on liquids.', 'Texting while driving is banned in many states.'],
+                translator: { visa: 'Visa', fine: 'Fine', permit: 'Permit', police: 'Police', passport: 'Passport' },
+                culture: 'Tip service staff, respect personal space, and queue politely.',
+                transport: 'Know your transit route, use official apps, and avoid jaywalking.',
+                health: 'Travel insurance recommended. Seasonal flu shots are advised.',
+                embassy: '+1-202-555-0143',
+                rates: { NPR_USD: 0.0068, USD_NPR: 147.0, NPR_INR: 0.62 }
+            },
+            Japan: {
+                title: 'Japan: Local law highlights',
+                summary: 'Observe quiet zones, follow signs closely, and keep public spaces clean.',
+                alerts: ['QR code check-in for events has been introduced.', 'Many shops still prefer cash payments.'],
+                translator: { visa: 'ビザ', fine: '罰金', permit: '許可', police: '警察', passport: 'パスポート' },
+                culture: 'Bow politely, avoid loud phone calls on trains, and remove shoes indoors.',
+                transport: 'Queue neatly at stations, keep right on escalators, and buy the correct ticket.',
+                health: 'Travel health insurance recommended. Wear a mask if you feel unwell.',
+                embassy: '+81-3-1234-5678',
+                rates: { NPR_USD: 0.0068, USD_NPR: 147.0, NPR_INR: 0.62 }
+            }
+        };
+
+        const quizData = {
+            Nepal: { question: 'What should you avoid at a temple in Nepal?', options: ['Wearing shoes inside', 'Speaking softly', 'Leaving a donation', 'Following the guide'], answer: 0 },
+            India: { question: 'What is often required before entering a religious site in India?', options: ['Removing shoes', 'Wearing flip-flops', 'Talking loudly', 'Cooking nearby'], answer: 0 },
+            USA: { question: 'What should you do when using transport in the USA?', options: ['Pay the correct fare', 'Board anywhere', 'Shout directions', 'Hold pets on seats'], answer: 0 },
+            Japan: { question: 'What should you do on a train in Japan?', options: ['Keep your phone quiet', 'Eat loudly', 'Stand in doorways', 'Leave trash behind'], answer: 0 }
+        };
+
+        const forumPosts = [
+            { name: 'Asha', message: 'The embassy contact saved me when my passport was delayed.' },
+            { name: 'Marcus', message: 'Real-time alerts helped me avoid a surprise fine in Nepal.' }
+        ];
+
+        const splashScreen = document.getElementById('splashScreen');
+        const appShell = document.getElementById('appShell');
+        const loginOverlay = document.getElementById('loginOverlay');
+        const countrySelect = document.getElementById('countrySelect');
+        const countrySummary = document.getElementById('countrySummary');
+        const liveAlert = document.getElementById('liveAlert');
+        const refreshAlert = document.getElementById('refreshAlert');
+        const currencyAmount = document.getElementById('currencyAmount');
+        const currencySelect = document.getElementById('currencySelect');
+        const currencyResult = document.getElementById('currencyResult');
+        const translateButton = document.getElementById('translateButton');
+        const legalTerm = document.getElementById('legalTerm');
+        const translatorOutput = document.getElementById('translatorOutput');
+        const cultureTip = document.getElementById('cultureTip');
+        const transportTip = document.getElementById('transportTip');
+        const healthTip = document.getElementById('healthTip');
+        const quizQuestion = document.getElementById('quizQuestion');
+        const quizOptions = document.getElementById('quizOptions');
+        const quizResult = document.getElementById('quizResult');
+        const forumPostsContainer = document.getElementById('forumPosts');
+        const forumForm = document.getElementById('forumForm');
+        const quizIntro = document.getElementById('openQuiz');
+        const storageKey = 'travelAwareLoggedIn';
+
+        function showApp() {
+            appShell.classList.remove('hidden');
+            if (!localStorage.getItem(storageKey)) {
+                loginOverlay.classList.add('visible');
+                loginOverlay.setAttribute('aria-hidden', 'false');
+            }
+        }
+
+        function hideSplash() {
+            splashScreen.classList.add('hidden');
+            setTimeout(showApp, 400);
+        }
+
+        function updateCountryPanel() {
+            const country = countrySelect.value;
+            const data = countryData[country];
+            countrySummary.innerHTML = `<p class="summary-title">${data.title}</p><p>${data.summary}</p><p><strong>Embassy:</strong> ${data.embassy}</p>`;
+            cultureTip.textContent = data.culture;
+            transportTip.textContent = data.transport;
+            healthTip.textContent = data.health;
+            updateAlertText(country);
+        }
+
+        function updateAlertText(country) {
+            const alerts = countryData[country].alerts;
+            const next = alerts[Math.floor(Math.random() * alerts.length)];
+            liveAlert.textContent = next;
+        }
+
+        function convertCurrency() {
+            const country = countrySelect.value;
+            const data = countryData[country];
+            const amount = Number(currencyAmount.value) || 0;
+            let result = '';
+            if (currencySelect.value === '1') result = `${amount} NPR ≈ ${(amount * data.rates.NPR_USD).toFixed(2)} USD`;
+            else if (currencySelect.value === '2') result = `${amount} USD ≈ ${(amount * data.rates.USD_NPR).toFixed(2)} NPR`;
+            else result = `${amount} NPR ≈ ${(amount * data.rates.NPR_INR).toFixed(2)} INR`;
+            currencyResult.textContent = result;
+        }
+
+        function translateTerm() {
+            const country = countrySelect.value;
+            const term = legalTerm.value.trim().toLowerCase();
+            const translation = countryData[country].translator[term];
+            translatorOutput.textContent = translation ? `${term} → ${translation}` : 'Translation not found. Try visa, fine, permit.';
+        }
+
+        function renderQuiz(country) {
+            const quiz = quizData[country];
+            quizQuestion.textContent = quiz.question;
+            quizOptions.innerHTML = '';
+            quiz.options.forEach((option, index) => {
+                const button = document.createElement('button');
+                button.type = 'button';
+                button.className = 'quiz-option';
+                button.textContent = option;
+                button.addEventListener('click', () => {
+                    quizResult.textContent = index === quiz.answer ? '✅ Correct! You are travel-ready.' : '❌ Try again.';
+                });
+                quizOptions.appendChild(button);
+            });
+            quizResult.textContent = '';
+        }
+
+        function renderForum() {
+            forumPostsContainer.innerHTML = forumPosts.map(post => `
+                <article class="forum-post">
+                    <div class="post-avatar">👣</div>
+                    <div>
+                        <strong>${post.name}</strong>
+                        <p>${post.message}</p>
+                    </div>
+                </article>
+            `).join('');
+        }
+
+        document.addEventListener('DOMContentLoaded', () => {
+            updateCountryPanel();
+            renderForum();
+            setTimeout(hideSplash, 2200);
+
+            countrySelect.addEventListener('change', updateCountryPanel);
+            refreshAlert.addEventListener('click', () => updateAlertText(countrySelect.value));
+            document.getElementById('convertButton').addEventListener('click', convertCurrency);
+            translateButton.addEventListener('click', translateTerm);
+            quizIntro.addEventListener('click', () => quizQuestion.scrollIntoView({ behavior: 'smooth' }));
+
+            forumForm.addEventListener('submit', event => {
+                event.preventDefault();
+                const name = document.getElementById('forumName').value.trim();
+                const message = document.getElementById('forumMessage').value.trim();
+                if (name && message) {
+                    forumPosts.unshift({ name, message });
+                    renderForum();
+                    forumForm.reset();
+                }
+            });
+
+            document.getElementById('loginForm').addEventListener('submit', event => {
+                event.preventDefault();
+                const phoneInput = document.getElementById('phoneInput');
+                const phone = phoneInput.value.trim();
+                const validPhone = /^\\d{10,15}$/;
+                if (!validPhone.test(phone)) {
+                    phoneInput.setCustomValidity('Enter a valid 10-15 digit phone number.');
+                    phoneInput.reportValidity();
+                    return;
+                }
+                phoneInput.setCustomValidity('');
+                localStorage.setItem(storageKey, 'true');
+                loginOverlay.classList.remove('visible');
+                loginOverlay.setAttribute('aria-hidden', 'true');
+            });
+
+            document.getElementById('googleLogin').addEventListener('click', () => {
+                localStorage.setItem(storageKey, 'true');
+                loginOverlay.classList.remove('visible');
+                loginOverlay.setAttribute('aria-hidden', 'true');
+                window.open('https://accounts.google.com/signin', '_blank');
+            });
+
+            document.getElementById('facebookLogin').addEventListener('click', () => {
+                localStorage.setItem(storageKey, 'true');
+                loginOverlay.classList.remove('visible');
+                loginOverlay.setAttribute('aria-hidden', 'true');
+                window.open('https://www.facebook.com/login', '_blank');
+            });
+
+            document.getElementById('skipLogin').addEventListener('click', () => {
+                loginOverlay.classList.remove('visible');
+                loginOverlay.setAttribute('aria-hidden', 'true');
+            });
+
+            if (localStorage.getItem(storageKey)) {
+                loginOverlay.classList.remove('visible');
+                loginOverlay.setAttribute('aria-hidden', 'true');
+            }
+        });
+    </script>
+</body>
+</html>
